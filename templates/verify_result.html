@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Member Verification Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #0056b3;
+            font-size: 2em;
+        }
+        .result-box {
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .result-box.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result-box.danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .result-box.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .result-box h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        .details-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            display: inline-block; /* To center the list itself */
+        }
+        .details-list li {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .details-list li strong {
+            display: inline-block;
+            width: 150px; /* Align labels */
+            text-align: right;
+            margin-right: 10px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Community Member Verification Service</h1>
+        </div>
+
+        <div class="result-box {{ status_class }}">
+            <h2>{{ title }}</h2>
+            <p>{{ message }}</p>
+
+            {% if verified_info %}
+                <h3>Verified Details:</h3>
+                <ul class="details-list">
+                    {% for key, value in verified_info.items() %}
+                        <li><strong>{{ key }}:</strong> {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>This service is provided by Kenyasi N1 Youth Association.</p>
+            <p>For inquiries or issues, please contact the association directly.</p>
+        </div>
+    </div>
+</body>
+</html>

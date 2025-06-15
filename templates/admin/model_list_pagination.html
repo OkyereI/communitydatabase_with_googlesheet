@@ -1,0 +1,30 @@
+<div class="row">
+    <div class="col-md-6 pull-left">
+        {% if model_list.page is not none %}
+        <span class="pagination-info">{{ _gettext('Showing %(range_start)s - %(range_end)s of %(total_count)s records', range_start=model_list.offset + 1, range_end=model_list.offset + model_list.count, total_count=model_list.num_pages * model_list.per_page if model_list.num_pages else model_list.total) }}</span>
+        {% endif %}
+    </div>
+    <div class="col-md-6 pull-right text-right">
+        <ul class="pagination pagination-sm">
+            {% if model_list.has_prev %}
+            <li><a href="{{ admin_view.get_url('.index_view', page=model_list.page - 1, sort=model_list.sort_field, sort_desc=model_list.sort_desc, search=model_list.search_query, filters=model_list.filter_args) }}">&laquo;</a></li>
+            {% else %}
+            <li class="disabled"><a href="#">&laquo;</a></li>
+            {% endif %}
+
+            {% for p in model_list.iter_pages() %}
+                {% if p %}
+                    <li{% if p == model_list.page %} class="active"{% endif %}><a href="{{ admin_view.get_url('.index_view', page=p, sort=model_list.sort_field, sort_desc=model_list.sort_desc, search=model_list.search_query, filters=model_list.filter_args) }}">{{ p + 1 }}</a></li>
+                {% else %}
+                    <li class="disabled"><a href="#">...</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if model_list.has_next %}
+            <li><a href="{{ admin_view.get_url('.index_view', page=model_list.page + 1, sort=model_list.sort_field, sort_desc=model_list.sort_desc, search=model_list.search_query, filters=model_list.filter_args) }}">&raquo;</a></li>
+            {% else %}
+            <li class="disabled"><a href="#">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,43 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <h3>Send Bulk SMS to All Community Members</h3>
+        <p class="text-info">
+          This message will be sent to ALL registered community members with a contact number.
+          The system will automatically add the member's Verification Code and Name as a header,
+          and a fixed footer "From: Kenyasi N1 Youth association".
+        </p>
+        <p class="text-info">
+          Example SMS format: <br>
+          Verification code: [Member's Verification Code]<br>
+          Name: [Member's Full Name]<br>
+          .....................................<br>
+          [Your Message Here]<br>
+          From: Kenyasi N1 Youth association
+        </p>
+
+        <hr>
+
+        <form method="POST" action="{{ url_for('communitymember.send_all_sms_view') }}">
+          {{ form.csrf_token }} {# Include CSRF token for security #}
+          <div class="form-group">
+            {{ form.message.label(class_="control-label") }}
+            {{ form.message(class_="form-control", rows="8") }}
+            {% if form.message.errors %}
+              <ul class="text-danger">
+                {% for error in form.message.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+          <a href="{{ url_for('admin.index') }}" class="btn btn-default">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

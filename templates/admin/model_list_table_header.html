@@ -1,0 +1,20 @@
+<div class="clearfix">
+    {# The pull-left div for actions (like delete) is intentionally removed as per previous instructions #}
+    <div class="pull-right"> {# Reverted to standard pull-right for positioning #}
+        {% if admin_view.search_supported %}
+            <form class="form-inline search-form" action="{{ admin_view.get_url('.index_view') }}"> {# Removed inline styles from form #}
+                {% for flt in filter_args %}{% if flt.operation != 'search' %}
+                    <input type="hidden" name="{{ flt.operation }}" value="{{ flt.value }}">
+                {% endif %}{% endfor %}
+                <div class="form-group"> {# Standard Bootstrap form-group #}
+                    <div class="input-group">
+                        <input type="text" name="search" value="{{ filters.search.value if filters.search and filters.search.value else '' }}" class="form-control search-query" placeholder="{{ _gettext('Search') }}" title="{{ _gettext('Search records') }}">
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-search"></i> Search</button>
+                        </span>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>

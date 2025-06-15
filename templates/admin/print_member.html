@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Member Information - {{ member.first_name }} {{ member.last_name }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .info-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .info-section:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 180px; /* Adjust as needed */
+        }
+        .info-value {
+            display: inline-block;
+        }
+        @media print {
+            body {
+                margin: 0;
+                
+         
+            }
+            .container {
+                width: 100%;
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="no-print text-center" style="margin-bottom: 20px;">
+            <button onclick="window.print()" class="btn btn-primary">Print</button>
+            <a href="{{ url_for('communitymember.index_view') }}" class="btn btn-default">Back to List</a>
+        </div>
+
+        <h1> Kenyasi N1 Community Member Information</h1>
+        <hr>
+
+        <div class="info-section">
+            <h2>Personal Information</h2>
+            <p><span class="info-label">Full Name:</span> <span class="info-value">{{ member.first_name }} {{ member.last_name }}</span></p>
+            <p><span class="info-label">Date of Birth:</span> <span class="info-value">{{ member.date_of_birth.strftime('%Y-%m-%d') }}</span></p>
+            <p><span class="info-label">Gender:</span> <span class="info-value">{{ member.gender }}</span></p>
+            {# Corrected: Use phone_number instead of contact_number #}
+            <p><span class="info-label">Contact Number:</span> <span class="info-value">{{ member.phone_number if member.phone_number else 'N/A' }}</span></p>
+            <p><span class="info-label">Email:</span> <span class="info-value">{{ member.email if member.email else 'N/A' }}</span></p>
+            {# Corrected: Use residence instead of address #}
+            <p><span class="info-label">Address:</span> <span class="info-value">{{ member.residence if member.residence else 'N/A' }}</span></p>
+            <p><span class="info-label">ID Card Number:</span> <span class="info-value">{{ member.id_card_number }}</span></p>
+            <p><span class="info-label">Verification Code:</span> <span class="info-value">{{ member.verification_code }}</span></p>
+        </div>
+
+        <div class="info-section">
+            <h2>Employment Details</h2>
+            <p><span class="info-label">Employment Status:</span> <span class="info-value">{{ member.employment_status if member.employment_status else 'N/A' }}</span></p>
+            {# Corrected: Use profession instead of occupation #}
+            <p><span class="info-label">Occupation:</span> <span class="info-value">{{ member.profession if member.profession else 'N/A' }}</span></p>
+            <p><span class="info-label">Employer:</span> <span class="info-value">{{ member.employer if member.employer else 'N/A' }}</span></p>
+        </div>
+
+        <div class="info-section">
+            <h2>Parent/Guardian Information</h2>
+            <p><span class="info-label">Name:</span> <span class="info-value">{{ member.parent_guardian_name if member.parent_guardian_name else 'N/A' }}</span></p>
+            <p><span class="info-label">Contact:</span> <span class="info-value">{{ member.parent_guardian_contact if member.parent_guardian_contact else 'N/A' }}</span></p>
+            <p><span class="info-label">Address:</span> <span class="info-value">{{ member.parent_guardian_address if member.parent_guardian_address else 'N/A' }}</span></p>
+        </div>
+
+        <div class="info-section">
+            <h2>Association Details</h2>
+            <p><span class="info-label">Area Code:</span> <span class="info-value">{{ member.area_code }}</span></p>
+            {# Corrected: Use registration_date instead of created_at #}
+            <p><span class="info-label">Registered On:</span> <span class="info-value">{{ member.registration_date.strftime('%Y-%m-%d %H:%M:%S') }}</span></p>
+            {# Removed updated_at as it does not exist in the model #}
+        </div>
+
+        <div class="no-print text-center" style="margin-top: 30px;">
+            <small>Generated on: {{ datetime.now().strftime('%Y-%m-%d %H:%M:%S') }}</small>
+        </div>
+    </div>
+
+    <script>
+        // Automatically trigger print dialog if print_on_load is true
+        window.onload = function() {
+            if ({{ print_on_load | tojson }}) { // tojson ensures proper boolean conversion
+                window.print();
+            }
+        };
+    </script>
+</body>
+</html>

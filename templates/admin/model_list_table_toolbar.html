@@ -1,0 +1,154 @@
+<div class="clearfix">
+    <div class="pull-left">
+        {% if admin_view.get_actions_list() %}
+        <div class="btn-group">
+            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+                {{ _gettext('Actions') }}
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                {% for action in admin_view.get_actions_list() %}
+                <li>
+                    <a href="#" class="action-trigger" data-action="{{ action.name }}">{{ action.text }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {# Delete selected button. Assumes an action named 'delete' or similar handles this. #}
+        {% if admin_view.can_delete %}
+        <button class="btn btn-danger" id="delete_selected" disabled>{{ _gettext('Delete Selected') }}</button>
+        {% endif %}
+    </div>
+    <div class="pull-right">
+        {# Export to Excel button #}
+        <a href="{{ url_for('export_members_excel') }}" class="btn btn-success">
+            <span class="glyphicon glyphicon-download-alt"></span> {{ _gettext('Export to Excel') }}
+        </a>
+
+        {% if admin_view.column_filters %}
+        <div class="btn-group">
+            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="glyphicon glyphicon-filter"></i> {{ _gettext('Filter') }} <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+                {% for filter_obj in admin_view.column_filters %}
+                    {% if filter_obj.options %}
+                        {% for op_value, op_name in filter_obj.options %}
+                            <li><a href="{{ admin_view.get_url('.index_view', flt0_0=filter_obj.column.key, flt0_1=op_value, flt0_2='') }}">{{ filter_obj.name }} - {{ op_name }}</a></li>
+                        {% endfor %}
+                    {% else %}
+                        {# Render default filter options for non-dropdown filters #}
+                        {% if filter_obj.type == 'text' %}
+                            <li><a href="{{ admin_view.get_url('.index_view', flt0_0=filter_obj.column.key, flt0_1='like', flt0_2='') }}">{{ filter_obj.name }} - {{ _gettext('Contains') }}</a></li>
+                            <li><a href="{{ admin_view.get_url('.index_view', flt0_0=filter_obj.column.key, flt0_1='eq', flt0_2='') }}">{{ filter_obj.name }} - {{ _gettext('Equals') }}</a></li>
+                        {% elif filter_obj.type == 'date' %}
+                            <li><a href="{{ admin_view.get_url('.index_view', flt0_0=filter_obj.column.key, flt0_1='le', flt0_2='') }}">{{ filter_obj.name }} - {{ _gettext('Before') }}</a></li>
+                            <li><a href="{{ admin_view.get_url('.index_view', flt0_0=filter_obj.column.key, flt0_1='ge', flt0_2='') }}">{{ filter_obj.name }} - {{ _gettext('After') }}</a></li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {# Columns dropdown #}
+        {% if admin_view.column_display_all_relations and admin_view.column_list_all %}
+        <div class="btn-group">
+            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="glyphicon glyphicon-th-list"></i> {{ _gettext('Columns') }} <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+                {% for col in admin_view.column_list %}
+                    <li><a href="{{ admin_view.get_list_url(col) }}">{{ col }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {# Export dropdown (if different from Excel button) #}
+        {% if admin_view.column_export_allowed and admin_view.column_export_list %}
+        <div class="btn-group">
+            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+                <i class="glyphicon glyphicon-export"></i> {{ _gettext('Export') }} <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+                {% for fmt in admin_view.column_export_list %}
+                    <li><a href="{{ admin_view.get_export_url(fmt) }}">{{ fmt|upper }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block table_toolbar_js %}
+<script>
+    $(function() {
+        var selected_rows = new Set();
+        var delete_button = $('#delete_selected');
+
+        function updateDeleteButtonState() {
+            delete_button.prop('disabled', selected_rows.size === 0);
+        }
+
+        $('.action-checkbox-all').on('change', function() {
+            var is_checked = $(this).is(':checked');
+            $('.action-row-selector').prop('checked', is_checked).trigger('change');
+        });
+
+        $('.action-row-selector').on('change', function() {
+            var row_id = $(this).val();
+            if ($(this).is(':checked')) {
+                selected_rows.add(row_id);
+            } else {
+                selected_rows.delete(row_id);
+            }
+            updateDeleteButtonState();
+        });
+
+        delete_button.on('click', function(e) {
+            e.preventDefault();
+            if (confirm('{{ _gettext('Are you sure you want to delete the selected records?') }}')) {
+                var form = $(this).closest('form');
+                // Create a temporary form to submit the action and IDs
+                var temp_form = $('<form>', {
+                    'action': '{{ admin_view.get_url(".action_view") }}',
+                    'method': 'POST',
+                    'style': 'display:none;'
+                });
+                temp_form.append($('<input>', {'type': 'hidden', 'name': 'action', 'value': 'delete'}));
+                selected_rows.forEach(function(id) {
+                    temp_form.append($('<input>', {'type': 'hidden', 'name': 'id', 'value': id}));
+                });
+                $('body').append(temp_form);
+                temp_form.submit();
+            }
+        });
+
+        $('.action-trigger').on('click', function(e) {
+            e.preventDefault();
+            var action_name = $(this).data('action');
+            if (selected_rows.size === 0) {
+                alert('{{ _gettext('Please select at least one record to perform this action.') }}');
+                return;
+            }
+            if (confirm('{{ _gettext('Are you sure you want to perform this action on the selected records?') }}')) {
+                var temp_form = $('<form>', {
+                    'action': '{{ admin_view.get_url(".action_view") }}',
+                    'method': 'POST',
+                    'style': 'display:none;'
+                });
+                temp_form.append($('<input>', {'type': 'hidden', 'name': 'action', 'value': action_name}));
+                selected_rows.forEach(function(id) {
+                    temp_form.append($('<input>', {'type': 'hidden', 'name': 'id', 'value': id}));
+                });
+                $('body').append(temp_form);
+                temp_form.submit();
+            }
+        });
+
+        updateDeleteButtonState(); // Initial state
+    });
+</script>
+{% endblock %}

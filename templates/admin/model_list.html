@@ -1,0 +1,163 @@
+    {% extends 'admin/master.html' %}
+    {% import 'admin/macros.html' as macros with context %} {# ADDED: Import macros here #}
+
+    {% block head_tail %}
+        {{ super() }}
+        {# Corrected: Call macros.style_for_form() as it's defined in macros.html #}
+        {{ macros.style_for_form() }} 
+    {% endblock %}
+
+    {% block body %}
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="{{ url_for('.index_view') }}">{{ _gettext('List') }}</a>
+            </li>
+            {% if admin_view.can_create %}
+            <li>
+                <a href="{{ url_for('.create_view') }}">{{ _gettext('Create') }}</a>
+            </li>
+            {% endif %}
+        </ul>
+
+        {% block model_list_table %}
+        <div class="model-list">
+            {% block model_list_table_header %}
+            {% include 'admin/model_list_table_header.html' %}
+            {% endblock %}
+
+            {% block model_list_table_toolbar %}
+                {# The toolbar includes the filter dropdown, which now uses url_for #}
+                {% include 'admin/model_list_table_toolbar.html' %}
+            {% endblock %}
+
+            {# This block for filters should ideally be removed if filters are handled by toolbar #}
+            {# However, if it's a separate filter bar, ensure it uses url_for too #}
+            {% if filters %}
+                {# Corrected: Ensure this section also uses url_for for filter links if it's still present and active #}
+                <div class="row">
+                    <div class="col-md-12">
+                        {% include 'admin/model_list_filters.html' %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if admin_view.can_delete or admin_view.can_set_page_size or admin_view.column_filters or admin_view.column_searchable_list %}
+            <div class="clearfix">
+                <div class="pull-left">
+                    {% if admin_view.can_delete %}
+                    <div class="btn-group actions">
+                        <a class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" href="#">
+                            {{ _gettext('With selected') }}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for action in admin_view.get_actions_list() %}
+                            <li>
+                                <a href="#" class="action-trigger" data-name="{{ action.0 }}">{{ action.1 }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="pull-right">
+                    {% if admin_view.can_set_page_size %}
+                    <div class="btn-group">
+                        <a class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="glyphicon glyphicon-th-list"></i> {{ model_list.per_page }}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for s in admin_view.page_size_options %}
+                            <li>
+                                <a href="{{ admin_view.get_url('.index_view', page=0, sort=model_list.sort_field, sort_desc=model_list.sort_desc, search=model_list.search_query, filters=model_list.filter_args, page_size=s) }}">{{ s }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <table class="table table-striped table-bordered table-hover model-list">
+                <thead>
+                    <tr>
+                        {% if admin_view.column_display_actions or admin_view.can_delete %} {# Combine conditions for checkbox and actions column #}
+                            {% if admin_view.can_delete %}
+                            <th class="list-checkbox">
+                                <input type="checkbox" name="row_checkbox" class="action-checkbox-all" />
+                            </th>
+                            {% endif %}
+                        {% endif %}
+                        {% for c, name in list_columns %}
+                        <th class="column-header {{ c }}
+                            {% if model_list.sort_field == c %}
+                                {% if model_list.sort_desc %}
+                                    desc
+                                {% else %}
+                                    asc
+                                {% endif %}
+                            {% endif %}
+                            ">
+                            {% if admin_view.is_sortable(c) %}
+                                <a href="{{ admin_view.get_url('.index_view', sort=c, sort_desc=not model_list.sort_desc if model_list.sort_field == c else False, page=model_list.page, search=model_list.search_query, filters=model_list.filter_args) }}" title="{{ _gettext('Sort by %(name)s', name=name) }}">
+                                    {{ name }}
+                                    {% if model_list.sort_field == c %}
+                                        {% if model_list.sort_desc %}
+                                            <span class="fa fa-chevron-down glyphicon glyphicon-chevron-down"></span>
+                                        {% else %}
+                                            <span class="fa fa-chevron-up glyphicon glyphicon-chevron-up"></span>
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            {% else %}
+                                {{ name }}
+                            {% endif %}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if model_list.items|length > 0 %}
+                    {% for row in model_list.items %}
+                    <tr>
+                        {% if admin_view.column_display_actions or admin_view.can_delete %}
+                            {% if admin_view.can_delete %}
+                            <td class="list-checkbox-column">
+                                <input type="checkbox" name="rowid" class="action-row-selector" value="{{ admin_view.get_pk_value(row) }}" />
+                            </td>
+                            {% endif %}
+                        {% endif %}
+                        {# Then iterate through the actual data columns #}
+                        {% for c, name in list_columns %}
+                            <td class="col-{{ c }}">
+                                {# Use admin_view.get_list_value for robust value retrieval,
+                                   it will apply column_formatters automatically #}
+                                {{ admin_view.get_list_value(row, c) }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="99">
+                            {% block empty_list_message %}
+                            <div class="text-center">
+                                {{ _gettext('No records found.') }}
+                            </div>
+                        {% endblock %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            {% block model_list_table_after %}{% endblock %}
+        </div>
+        {% endblock %}
+
+        {% block model_list_table_pagination %}
+        {% include 'admin/model_list_pagination.html' %}
+        {% endblock %}
+    {% endblock %}

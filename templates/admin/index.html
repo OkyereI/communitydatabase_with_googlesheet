@@ -1,0 +1,196 @@
+{% extends admin_base_template %}
+
+{% block head_css %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .panel {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .panel-heading {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .panel-body h2 {
+            font-size: 3em;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .badge {
+            background-color: #337ab7; /* Primary color */
+        }
+        .action-buttons {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            display: flex; /* Use flexbox for layout */
+            gap: 10px; /* Space between buttons */
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        .action-buttons .btn {
+            flex-grow: 1; /* Allow buttons to grow and fill space */
+            min-width: 200px; /* Minimum width for buttons */
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1><i class="fa fa-home"></i> WELCOME TO KENYSI N1 YOUTH ASOCIATION</h1>
+            <h1><i class="fa fa-dashboard"></i> Administrator Dashboard</h1>
+            <p class="lead">Welcome, {{ current_user.username }}! Here's an overview of your community members.</p>
+            <hr>
+        </div>
+    </div>
+
+    {# Action Buttons Section #}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="action-buttons">
+                <a href="{{ url_for('communitymember.create_view') }}" class="btn btn-success btn-lg">
+                    <i class="fa fa-plus-circle"></i> Add New Community Member
+                </a>
+                <a href="{{ url_for('communitymember.index_view') }}" class="btn btn-info btn-lg">
+                    <i class="fa fa-list"></i> View All Members
+                </a>
+                <a href="{{ url_for('communitymember.send_all_messages_view') }}" class="btn btn-warning">
+                    <span class="glyphicon glyphicon-comment"></span> Send All Messages
+                </a>
+                <a href="{{ url_for('export_members_excel') }}" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-download-alt"></span> Export Members (Excel)
+                </a>
+            </div>
+            <hr>
+        </div>
+    </div>
+    {# END Action Buttons Section #}
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-users"></i> Total Registered Members</h3>
+                </div>
+                <div class="panel-body text-center">
+                    <h2>{{ stats.total_members }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-briefcase"></i> Members by Employment Status</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        {% for status, count in stats.employment_status.items() %}
+                            <li class="list-group-item">
+                                {{ status }}: <span class="badge">{{ count }}</span>
+                            </li>
+                        {% endfor %}
+                        {% if not stats.employment_status %}
+                            <li class="list-group-item">No employment data available.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-venus-mars"></i> Members by Gender</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        {% for gender, count in stats.gender.items() %}
+                            <li class="list-group-item">
+                                {{ gender }}: <span class="badge">{{ count }}</span>
+                            </li>
+                        {% endfor %}
+                        {% if not stats.gender %}
+                            <li class="list-group-item">No gender data available.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-map-marker"></i> Members by Area Code (Top 5)</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        {% for area_code, count in stats.area_code.items() %}
+                            <li class="list-group-item">
+                                {{ area_code }}: <span class="badge">{{ count }}</span>
+                            </li>
+                        {% endfor %}
+                        {% if not stats.area_code %}
+                            <li class="list-group-item">No area code data available.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-briefcase"></i> Summary of Professions</h3>
+          </div>
+          <div class="panel-body">
+            <ul class="list-group">
+              {% for profession, count in stats.professions.items() %}
+                <li class="list-group-item">
+                  {{ profession }}: <span class="badge">{{ count }}</span>
+                </li>
+              {% endfor %}
+              {% if not stats.professions %}
+                  <li class="list-group-item">No profession data available.</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ADDED: Members by Educational Level Section #}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-info"> {# You can change the panel class (e.g., panel-primary, panel-success) #}
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-graduation-cap"></i> Members by Educational Level</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        {% for level, count in stats.educational_level.items() %}
+                            <li class="list-group-item">
+                                {{ level }}: <span class="badge">{{ count }}</span>
+                            </li>
+                        {% endfor %}
+                        {% if not stats.educational_level %}
+                            <li class="list-group-item">No educational level data available.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# END ADDED: Members by Educational Level Section #}
+
+</div>
+{% endblock %}
+communitydatabase_with_googlesheet

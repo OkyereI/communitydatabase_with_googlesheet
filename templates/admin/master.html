@@ -1,0 +1,17 @@
+{% extends admin_base_template %}
+
+{# Flask-Admin provides its own 'lib' and 'macros' internally that are typically available. #}
+{# If you define your own, ensure they don't conflict or extend properly. #}
+{# The previous 'master.html' hardcoded the nav_bar and main layout, which is not how #}
+{# Flask-Admin's modular templates are designed to be used. #}
+{# Reverting to a simpler master.html that extends admin_base_template #}
+{# allows Flask-Admin to inject its default navigation and layout. #}
+
+{% block head_tail %}
+    {{ super() }}
+    {# Ensure macros are imported if you intend to use them in child templates #}
+    {% import 'admin/macros.html' as macros with context %}
+{% endblock %}
+
+{# No 'body' block override here, let admin_base_template provide the main structure. #}
+{# If you want custom content, use specific blocks provided by admin_base_template, e.g., 'main_menu', 'body_inner'. #}

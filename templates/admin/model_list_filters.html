@@ -1,0 +1,92 @@
+{# This file should NOT extend any other template, and should NOT include itself. #}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="well well-sm form-inline">
+            <form class="form-filter" method="GET" action="{{ admin_view.get_url('.index_view') }}">
+                {# Iterate directly over the 'filters' list to include hidden inputs for active filters #}
+                {% for flt in filters %}
+                    <input type="hidden" name="flt{{ loop.index0 }}_0" value="{{ flt.column }}">
+                    <input type="hidden" name="flt{{ loop.index0 }}_1" value="{{ flt.operation }}">
+                    <input type="hidden" name="flt{{ loop.index0 }}_2" value="{{ flt.value }}">
+                {% endfor %}
+
+                <div class="form-group">
+                    <label for="filter_column">{{ _gettext('Filter') }}:</label>
+                    <select id="filter_column" name="flt0_0" class="form-control">
+                        <option value="__select__">-- {{ _gettext('Select column') }} --</option>
+                        {# Iterate over the actual filter objects from admin_view.column_filters #}
+                        {% for filter_obj in admin_view.column_filters %}
+                        <option value="{{ filter_obj.column.key }}"
+                                {% if filters and filters[0] and filters[0]['column'] == filter_obj.column.key %}selected{% endif %}>
+                            {{ filter_obj.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filter_op">{{ _gettext('Operation') }}:</label>
+                    <select id="filter_op" name="flt0_1" class="form-control">
+                        {# Iterate over the filter objects to get their operations.
+                           For simple filters, we directly use their 'operation' attribute. #}
+                        {% for filter_obj in admin_view.column_filters %}
+                            {% set op_value = filter_obj.operation %}
+                            {% set op_name = '' %}
+
+                            {# Map operation values to user-friendly names #}
+                            {% if op_value == 'like' %}
+                                {% set op_name = _gettext('Contains') %}
+                            {% elif op_value == 'eq' %}
+                                {% set op_name = _gettext('Equals') %}
+                            {% elif op_value == 'between' %}
+                                {% set op_name = _gettext('Between') %}
+                            {# Add more conditions for other filter types if needed #}
+                            {% else %}
+                                {% set op_name = op_value %} {# Fallback to raw operation if not mapped #}
+                            {% endif %}
+
+                            <option class="flt-op-{{ filter_obj.column.key }}"
+                                    value="{{ op_value }}"
+                                    {% if filters and filters[0] and filters[0]['operation'] == op_value and filters[0]['column'] == filter_obj.column.key %}selected{% endif %}>
+                                {{ op_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filter_value">{{ _gettext('Value') }}:</label>
+                    {# Access the value from the 'filters' dictionary using string key #}
+                    <input type="text" id="filter_value" name="flt0_2" value="{{ filters[0]['value'] if filters and filters[0] else '' }}" class="form-control" placeholder="{{ _gettext('Filter value') }}">
+                </div>
+
+                <button type="submit" class="btn btn-default">{{ _gettext('Apply') }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block filter_js %}
+<script>
+    $(function() {
+        var column_selector = $('#filter_column');
+        var op_selector = $('#filter_op');
+
+        function updateFilterOps() {
+            var column = column_selector.val();
+            op_selector.find('option').hide();
+            op_selector.find('.flt-op-' + column).show();
+
+            var current_op = op_selector.val();
+            if (current_op == '__select__' || !op_selector.find('.flt-op-' + column + '[value=\"' + current_op + '\"]').length) {
+                op_selector.val(op_selector.find('.flt-op-' + column + ':visible').first().val());
+            }
+        }
+
+        column_selector.change(updateFilterOps);
+        // Initial update
+        updateFilterOps();
+    });
+</script>
+{% endblock %}
