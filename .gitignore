@@ -1,4 +1,5 @@
 service_account_key.json
-__pycache__
+__pycache__/
 venv
 .venv
+dist/
